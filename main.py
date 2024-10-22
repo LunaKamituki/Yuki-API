@@ -7,6 +7,7 @@ import random
 import os
 import subprocess
 from cache import cache
+from bs4 import BeautifulSoup as bs
 
 @cache(seconds=300)
 def getBBSServer():
@@ -135,7 +136,9 @@ def bbsServer():
 
 @app.get("/api/bbs/messages")
 def view_bbs(request: Request, t: str, channel: Union[str,None]="main", verify: Union[str,None] = "false"):
-    return bbsapi_cached(verify,channel)
+    soup = bs(bbsapi_cached(verify,channel), 'html.parser')
+    trs = soup.find_all('tr')
+    return trs
 
 
 @app.exception_handler(500)
