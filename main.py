@@ -109,15 +109,6 @@ def view_bbs(request: Request,t: str,channel:Union[str,None]="main",verify: Unio
     print(fr"{server}bbs/api?t={urllib.parse.quote(t)}&verify={urllib.parse.quote(verify)}&channel={urllib.parse.quote(channel)}")
     return bbsapi_cached(verify,channel)
 
-@app.get("/bbs/result")
-def write_bbs(request: Request,name: str = "",message: str = "",seed:Union[str,None] = "",channel:Union[str,None]="main",verify:Union[str,None]="false",yuki: Union[str] = Cookie(None)):
-    if not(check_cokie(yuki)):
-        return redirect("/")
-    t = requests.get(fr"{server}bbs/result?name={urllib.parse.quote(name)}&message={urllib.parse.quote(message)}&seed={urllib.parse.quote(seed)}&channel={urllib.parse.quote(channel)}&verify={urllib.parse.quote(verify)}&info={urllib.parse.quote(get_info(request))}&serververify={get_verifycode()}",cookies={"yuki":"True"}, allow_redirects=False)
-    if t.status_code != 307:
-        return HTMLResponse(t.text)
-    return redirect(f"/bbs?name={urllib.parse.quote(name)}&seed={urllib.parse.quote(seed)}&channel={urllib.parse.quote(channel)}&verify={urllib.parse.quote(verify)}")
-
 @cache(seconds=30)
 def how_cached():
     return requests.get(fr"{server}bbs/how").text
@@ -130,16 +121,27 @@ def view_commonds(request: Request,yuki: Union[str] = Cookie(None)):
 
     
     
-@app.get("/api/bbs")
+@app.get("/api/bbs/server")
 def bbsServer():
     return getBBSServer()
 
 @app.get("/api/bbs/messages")
 def view_bbs(request: Request, t: str, channel: Union[str,None]="main", verify: Union[str,None] = "false"):
     soup = bs(bbsapi_cached(verify,channel), 'html.parser')
-    trs = soup.find_all('tr')
-    return trs
 
+    topic_content = soup.find('h3').get_text()
+
+    messages = soup.find_all('tr')[1:]
+    
+    all_messages = []
+
+    for message in messages:
+        name_and_message = [pear[0], pear[1] for pear in message.find_all('td')]
+        all_messages.append(name_and_message)
+    return json.dumps({
+        'topic': topic_content,
+        'messages': all_messages
+    })
 
 @app.exception_handler(500)
 def page(request: Request,__):
