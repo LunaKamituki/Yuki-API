@@ -136,7 +136,7 @@ def view_bbs(request: Request, t: str = '0', channel: Union[str,None]="main", ve
     all_messages = []
 
     for message in messages:
-        all_messages.append([[number.get_text(), name.get_text(), message.get_text()] for number, name, message in message.find_all('td')])
+        all_messages.append([number.get_text(), name.get_text(), message.get_text() for number, name, message in message.find_all('td')])
 
     return json.dumps({
         'topic': topic_content,
