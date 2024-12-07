@@ -126,7 +126,7 @@ def bbsServer():
     return getBBSServer()
 
 @app.get("/api/bbs/messages")
-def view_bbs(request: Request, t: str, channel: Union[str,None]="main", verify: Union[str,None] = "false"):
+def view_bbs(request: Request, t: str = '0', channel: Union[str,None]="main", verify: Union[str,None] = "false"):
     soup = bs(bbsapi_cached(verify,channel), 'html.parser')
 
     topic_content = soup.find('h3').get_text()
@@ -136,8 +136,8 @@ def view_bbs(request: Request, t: str, channel: Union[str,None]="main", verify: 
     all_messages = []
 
     for message in messages:
-        name_and_message = [pear for pear in message.find_all('td')]
-        all_messages.append(name_and_message)
+        all_messages.append([[name.get_text(), message.get_text()] for name, message in zip(message.find_all('td'))])
+        
     return json.dumps({
         'topic': topic_content,
         'messages': all_messages
